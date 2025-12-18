@@ -1,0 +1,6 @@
+package model.enums;
+
+public enum Genero {
+    SHONEN, SHOJO, SEINEN, JOSEI, MECHA, ISEKAI, SLICE_OF_LIFE,
+    ACCION, COMEDIA, DRAMA, FANTASIA, TERROR
+}
