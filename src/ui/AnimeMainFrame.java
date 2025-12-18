@@ -10,7 +10,6 @@ import service.controller.AnimeController;
 import service.EstadisticaService;
 import exception.ValidacionException;
 
-// Imports de Strategies (ESTO ES LO QUE TE FALTABA)
 import strategy.filter.*;
 import strategy.sort.*;
 import strategy.recommend.Recomendador;
@@ -34,6 +33,7 @@ public class AnimeMainFrame extends JFrame {
     private JTextField txtTitulo, txtAnio, txtEstudio, txtExtra;
     private JComboBox<EstadoAnime> cmbEstado;
     private JComboBox<String> cmbTipo;
+    private JComboBox<String> cmbCalificacion; // Nuevo campo para la calificación
 
     public AnimeMainFrame(AnimeController controller) {
         this.controller = controller;
@@ -44,7 +44,7 @@ public class AnimeMainFrame extends JFrame {
 
     private void configurarVentana() {
         setTitle("Sistema de Clasificación de Animé");
-        setSize(900, 650); // Un poco más grande para que quepan las pestañas
+        setSize(950, 700); // Un poco más grande para que entre todo cómodo
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
     }
@@ -64,7 +64,7 @@ public class AnimeMainFrame extends JFrame {
         JPanel panelBusqueda = crearPanelBusqueda();
         tabbedPane.addTab("Búsqueda Avanzada", panelBusqueda);
 
-        // Pestaña 4: Mis Listas (NUEVO)
+        // Pestaña 4: Mis Listas
         JPanel panelListas = crearPanelListas();
         tabbedPane.addTab("Mis Listas", panelListas);
 
@@ -82,7 +82,8 @@ public class AnimeMainFrame extends JFrame {
     //                PESTAÑA 1: CARGA / EDICIÓN
     // =========================================================
     private JPanel crearPanelCarga() {
-        JPanel panel = new JPanel(new GridLayout(7, 2, 10, 10));
+        // Aumentamos filas a 8 para que entre la calificación
+        JPanel panel = new JPanel(new GridLayout(8, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
 
         // Tipo
@@ -109,8 +110,14 @@ public class AnimeMainFrame extends JFrame {
         panel.add(new JLabel("Estado:"));
         cmbEstado = new JComboBox<>(EstadoAnime.values());
         panel.add(cmbEstado);
+        
+        // Calificación (NUEVO)
+        panel.add(new JLabel("Calificación (1-5):"));
+        // Opciones: "-" (sin calificar) y del 1 al 5
+        cmbCalificacion = new JComboBox<>(new String[]{"-", "1", "2", "3", "4", "5"});
+        panel.add(cmbCalificacion);
 
-        // Dato Variable
+        // Dato Variable (Capítulos o Duración)
         JLabel lblExtra = new JLabel("Cantidad de Capítulos:");
         panel.add(lblExtra);
         txtExtra = new JTextField();
@@ -128,7 +135,7 @@ public class AnimeMainFrame extends JFrame {
         // Botón Guardar
         JButton btnGuardar = new JButton("Registrar / Guardar");
         btnGuardar.addActionListener(e -> accionGuardar());
-        panel.add(new JLabel(""));
+        panel.add(new JLabel("")); // Espacio vacío
         panel.add(btnGuardar);
 
         return panel;
@@ -141,6 +148,13 @@ public class AnimeMainFrame extends JFrame {
             String estudio = txtEstudio.getText();
             EstadoAnime estado = (EstadoAnime) cmbEstado.getSelectedItem();
             int extra = Integer.parseInt(txtExtra.getText());
+            
+            // Lógica para obtener calificación
+            int calificacion = 0;
+            String califSeleccionada = (String) cmbCalificacion.getSelectedItem();
+            if (!"-".equals(califSeleccionada)) {
+                calificacion = Integer.parseInt(califSeleccionada);
+            }
 
             if (animeEnEdicion == null) {
                 // Modo CREAR
@@ -151,7 +165,7 @@ public class AnimeMainFrame extends JFrame {
                 }
                 JOptionPane.showMessageDialog(this, "¡Registrado con éxito!");
             } else {
-                // Modo EDITAR (Borrar viejo y crear nuevo)
+                // Modo EDITAR (Borrar viejo y crear nuevo para simplificar)
                 controller.eliminar(animeEnEdicion);
                 if ("Serie".equals(cmbTipo.getSelectedItem())) {
                     controller.registrarSerie(titulo, anio, estudio, estado, extra);
@@ -162,6 +176,15 @@ public class AnimeMainFrame extends JFrame {
                 txtTitulo.setEditable(true);
                 JOptionPane.showMessageDialog(this, "¡Modificado con éxito!");
             }
+
+            // --- ACTUALIZAR CALIFICACIÓN ---
+            // Como el registro básico no pide calificación, la seteamos ahora:
+            Anime animeGuardado = controller.buscarPorTitulo(titulo);
+            if (animeGuardado != null && calificacion > 0) {
+                animeGuardado.setCalificacion(calificacion);
+                controller.actualizar(animeGuardado); // Guardar cambios en archivo
+            }
+
             limpiarFormulario();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Año y Cantidad deben ser números.");
@@ -175,6 +198,7 @@ public class AnimeMainFrame extends JFrame {
         txtAnio.setText("");
         txtEstudio.setText("");
         txtExtra.setText("");
+        cmbCalificacion.setSelectedIndex(0); // Volver a "-"
         animeEnEdicion = null;
         txtTitulo.setEditable(true);
     }
@@ -284,11 +308,20 @@ public class AnimeMainFrame extends JFrame {
         String titulo = (String) tableModel.getValueAt(fila, 0);
         Anime anime = controller.buscarPorTitulo(titulo);
         if (anime != null) {
+            // Cargar datos en el formulario
             txtTitulo.setText(anime.getTitulo());
             txtTitulo.setEditable(false);
             txtAnio.setText(String.valueOf(anime.getAnio()));
             txtEstudio.setText(anime.getEstudio());
             cmbEstado.setSelectedItem(anime.getEstado());
+            
+            // Cargar Calificación
+            if (anime.getCalificacion() > 0) {
+                cmbCalificacion.setSelectedItem(String.valueOf(anime.getCalificacion()));
+            } else {
+                cmbCalificacion.setSelectedItem("-");
+            }
+
             if (anime instanceof AnimeSerie) {
                 cmbTipo.setSelectedItem("Serie");
                 txtExtra.setText(String.valueOf(((AnimeSerie) anime).getCapitulos()));
@@ -296,8 +329,9 @@ public class AnimeMainFrame extends JFrame {
                 cmbTipo.setSelectedItem("Película");
                 txtExtra.setText(String.valueOf(((AnimePelicula) anime).getDuracionMinutos()));
             }
+            
             animeEnEdicion = anime;
-            tabbedPane.setSelectedIndex(0);
+            tabbedPane.setSelectedIndex(0); // Volver a la pestaña 1
             JOptionPane.showMessageDialog(this, "Datos cargados. Modifica y guarda.");
         }
     }
