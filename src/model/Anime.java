@@ -7,14 +7,17 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-// Implementa Serializable para poder guardarse en archivo binario fácilmente
+/**
+ * Clase abstracta que representa un Animé genérico.
+ * Implementa Serializable para poder guardarse en archivos binarios.
+ */
 public abstract class Anime implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String titulo;
     private int anio;
     private String estudio;
-    private int calificacion; // 1 a 5
+    private int calificacion; // Valor del 1 al 5 (0 indica sin calificar)
     private EstadoAnime estado;
     private Set<Genero> generos;
 
@@ -23,11 +26,14 @@ public abstract class Anime implements Serializable {
         this.anio = anio;
         this.estudio = estudio;
         this.estado = estado;
-        this.calificacion = 0; // 0 indica "sin calificar"
+        this.calificacion = 0; // Se inicializa sin calificación
         this.generos = new HashSet<>();
     }
 
-    // Método plantilla para validación (GRASP Expert)
+    /**
+     * Valida que los datos básicos del animé sean correctos.
+     * @throws ValidacionException si algún dato es inválido.
+     */
     public void validar() throws ValidacionException {
         if (titulo == null || titulo.trim().isEmpty()) {
             throw new ValidacionException("El título no puede estar vacío.");
@@ -40,7 +46,8 @@ public abstract class Anime implements Serializable {
         }
     }
 
-    // Getters y Setters con lógica
+    // --- Getters y Setters ---
+
     public void setCalificacion(int calificacion) throws ValidacionException {
         if (calificacion < 1 || calificacion > 5) {
             throw new ValidacionException("La calificación debe ser entre 1 y 5.");

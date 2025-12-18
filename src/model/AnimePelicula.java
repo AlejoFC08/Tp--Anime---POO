@@ -3,6 +3,10 @@ package model;
 import model.enums.EstadoAnime;
 import exception.ValidacionException;
 
+/**
+ * Representa una Película de Animé. Extiende la clase base Anime.
+ * Agrega el atributo de duración en minutos.
+ */
 public class AnimePelicula extends Anime {
     private int duracionMinutos;
 
@@ -11,6 +15,9 @@ public class AnimePelicula extends Anime {
         this.duracionMinutos = duracionMinutos;
     }
 
+    /**
+     * Sobrescribe la validación para verificar la duración.
+     */
     @Override
     public void validar() throws ValidacionException {
         super.validar();

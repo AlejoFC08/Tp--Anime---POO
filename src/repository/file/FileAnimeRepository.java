@@ -6,6 +6,10 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementación del repositorio que guarda los datos en un archivo binario (.dat).
+ * Usa Serialización de Java.
+ */
 public class FileAnimeRepository implements AnimeRepository {
     private static final String FILE_NAME = "catalogo_anime.dat";
 
@@ -23,15 +27,13 @@ public class FileAnimeRepository implements AnimeRepository {
     public List<Anime> cargar() {
         File file = new File(FILE_NAME);
         if (!file.exists()) {
-            return new ArrayList<>(); // Si no existe, devuelve lista vacía
+            return new ArrayList<>(); // Si no existe, inicia lista vacía
         }
 
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             return (List<Anime>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            // Si el archivo está corrupto o hay error, podrías devolver vacía o lanzar error
-            // Por simplicidad, devolvemos vacía para no bloquear la app, pero logueamos
-            System.err.println("Error cargando archivo, se iniciará catálogo vacío: " + e.getMessage());
+            System.err.println("Error leyendo archivo: " + e.getMessage());
             return new ArrayList<>();
         }
     }

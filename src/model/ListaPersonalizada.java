@@ -4,6 +4,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Representa una lista creada por el usuario (ej: "Favoritos", "Para ver después").
+ * Contiene una lista de referencias a Animes.
+ */
 public class ListaPersonalizada implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -16,6 +20,7 @@ public class ListaPersonalizada implements Serializable {
     }
 
     public void agregarAnime(Anime anime) {
+        // Evita duplicados en la misma lista
         if (!animes.contains(anime)) {
             animes.add(anime);
         }
